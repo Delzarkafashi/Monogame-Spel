@@ -126,6 +126,9 @@ namespace Monogame_Spel
             {
                 Speed.Y = 0; // Nollställ vertikal hastighet när den är på marken
                 isJumping = false;
+
+                // Återgå till gå-texturen när spelaren är på marken
+                currentTexture = go1;
             }
             else
             {
@@ -136,8 +139,9 @@ namespace Monogame_Spel
             // Om spelaren trycker på hoppknappen och är på marken, låt den hoppa
             if (state.IsKeyDown(Keys.W) && isPlayerOnGround)
             {
-                Speed = new Vector2(0, -5.0f);
                 isJumping = true;
+                currentTexture = hoppa1;
+                Speed = new Vector2(0, -5.0f);
             }
 
             if (state.IsKeyDown(Keys.S) && !isJumping)
@@ -149,10 +153,9 @@ namespace Monogame_Spel
             else
             {
                 isDuckar = false;
-                currentTexture = go1;
             }
 
-            // Kontrollera om spelaren är på en bock
+            // Kontrollera om spelaren är på en bock och uppdatera startpositionen
             bool isOnBlock = false;
             foreach (var block in blocks)
             {
@@ -177,7 +180,6 @@ namespace Monogame_Spel
                 // Om på en bock, använd annan startposition (exempelvis 200)
                 STARTY = 200; // Uppdatera med önskad startposition
             }
-
 
             enmysTimer--;
             if (enmysTimer <= 0)
