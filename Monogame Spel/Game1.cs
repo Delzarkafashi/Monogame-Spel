@@ -35,7 +35,7 @@ namespace Monogame_Spel
         private bool isPlaying;
         private double score = 0;
 
-        private const int STARTY = 280; //gubbens statrt position
+        private int STARTY = 280; //gubbens statrt position
 
         private List<Block> blocks;
 
@@ -85,21 +85,7 @@ namespace Monogame_Spel
             currentTexture = go1; // Initial texture
         }
 
-        //om player är på en block
-        private bool IsPlayerOnBlock()
-        {
-            Rectangle playerRect = new Rectangle((int)position.X, (int)position.Y, currentTexture.Width, currentTexture.Height);
-            foreach (var block in blocks)
-            {
-                Rectangle blockRect = new Rectangle((int)block.Position.X, (int)block.Position.Y, (int)block.Size.X, (int)block.Size.Y);
-                // Om spelaren står på ett block
-                if (playerRect.Bottom >= blockRect.Top && playerRect.Bottom <= blockRect.Top + 5 && playerRect.Intersects(blockRect))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -136,19 +122,28 @@ namespace Monogame_Spel
 
             bool isPlayerOnGround = position.Y >= STARTY;
 
-            if (position.Y > STARTY)
+            if (isPlayerOnGround)
             {
-                position = new Vector2(position.X, STARTY);
-                Speed = Vector2.Zero;
+                Speed.Y = 0; // Nollställ vertikal hastighet när den är på marken
                 isJumping = false;
-            }
-            Speed += new Vector2(0, 0.2f);
 
-            if (state.IsKeyDown(Keys.W) && !isJumping)
-            {
-                Speed = new Vector2(0, -5.0f);
-                isJumping = true;
+                // Återgå till gå-texturen när spelaren är på marken
+                currentTexture = go1;
             }
+            else
+            {
+                // Annars, låt spelaren falla genom att öka hastigheten i Y-riktning
+                Speed += new Vector2(0, 0.2f);
+            }
+
+            // Om spelaren trycker på hoppknappen och är på marken, låt den hoppa
+            if (state.IsKeyDown(Keys.W) && isPlayerOnGround)
+            {
+                isJumping = true;
+                currentTexture = hoppa1;
+                Speed = new Vector2(0, -5.0f);
+            }
+
             if (state.IsKeyDown(Keys.S) && !isJumping)
             {
                 isDuckar = true;
@@ -158,7 +153,32 @@ namespace Monogame_Spel
             else
             {
                 isDuckar = false;
-                currentTexture = go1;
+            }
+
+            // Kontrollera om spelaren är på en bock och uppdatera startpositionen
+            bool isOnBlock = false;
+            foreach (var block in blocks)
+            {
+                Rectangle playerRect = new Rectangle((int)position.X, (int)position.Y, currentTexture.Width, currentTexture.Height);
+                Rectangle blockRect = new Rectangle((int)block.Position.X, (int)block.Position.Y, (int)block.Size.X, (int)block.Size.Y);
+
+                if (playerRect.Intersects(blockRect))
+                {
+                    isOnBlock = true;
+                    break;
+                }
+            }
+
+            // Uppdatera startpositionen baserat på om spelaren är på en bock eller inte
+            if (!isOnBlock)
+            {
+                // Om inte på en bock, använd standard startposition
+                STARTY = 280;
+            }
+            else
+            {
+                // Om på en bock, använd annan startposition (exempelvis 200)
+                STARTY = 200; // Uppdatera med önskad startposition
             }
 
             enmysTimer--;
